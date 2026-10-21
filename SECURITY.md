@@ -1,5 +1,7 @@
 # Security and privacy
 
+The `extension/` preview is separate from the Python prototype described below. It requests only the side-panel permission, has no mailbox access or network connections, and holds fictional demo state in memory until the panel reloads.
+
 This prototype is for one user on a trusted local computer. Do not expose its port to a LAN or the internet. It has local Host validation and a per-process action token, but no user login or multi-user isolation.
 
 OAuth credentials and tokens are stored unencrypted in `data/`. Protect that directory with OS permissions; it is excluded from Git and Docker images. Windows users must rely on Windows ACLs, not Unix mode bits. Disconnect by revoking the app in Google Account connections and deleting `data/token.json`; deleting the token alone does not revoke it.

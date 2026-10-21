@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inbox Rescue</title>
+  <link rel="stylesheet" href="panel.css">
+  <script type="module" src="panel.js"></script>
+</head>
+<body>
+  <main>
+    <header><strong>✉ INBOX RESCUE</strong><span class="badge">Demo</span></header>
+    <section class="intro" aria-labelledby="title">
+      <p class="eyebrow">A second look, beside Gmail</p>
+      <h1 id="title">Important mail.<br>Back in sight.</h1>
+      <p>Review possible missed messages without leaving your inbox.</p>
+    </section>
+    <aside class="notice"><strong>Fictional mail only</strong><p>This preview does not connect to Gmail or change real messages. Gmail sign-in is coming next.</p></aside>
+    <button id="scan" class="primary wide" type="button">Try a demo scan</button>
+    <section aria-labelledby="queue-title">
+      <div class="queue-heading"><h2 id="queue-title">Review queue</h2><button id="reset" type="button" class="text-button">Reset demo</button></div>
+      <div class="categories" role="group" aria-label="Message category">
+        <button id="spam" type="button" aria-pressed="true">Spam (0)</button>
+        <button id="promotions" type="button" aria-pressed="false">Promotions (0)</button>
+      </div>
+      <label class="filter"><input id="show-all" type="checkbox"> Show all checked messages</label>
+      <p id="status" role="status" aria-live="polite">Start a demo scan to explore the review flow.</p>
+      <div id="items"></div>
+    </section>
+    <footer>No mailbox access · No server needed<br>Demo changes last until this panel reloads.<br>Past correspondence does not verify a sender’s identity.</footer>
+  </main>
+  <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-description">
+    <form method="dialog">
+      <h2 id="confirm-title">Simulate a restore?</h2>
+      <p id="confirm-description">This moves the fictional message to Primary. Your real Gmail account will not change.</p>
+      <div class="dialog-actions"><button value="cancel" autofocus>Cancel</button><button value="restore" class="primary">Restore demo message</button></div>
+    </form>
+  </dialog>
+</body>
+</html>
