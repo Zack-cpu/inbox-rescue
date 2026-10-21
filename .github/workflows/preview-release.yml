@@ -1,0 +1,62 @@
+name: Publish Preview
+on:
+  push:
+    tags: ['v*-preview']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing Preview tag to publish
+        required: true
+        default: v0.3.0-preview
+permissions:
+  contents: read
+concurrency:
+  group: preview-${{ github.event.inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ github.event.inputs.tag || github.ref_name }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref_name }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate tag and package version
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const v = JSON.parse(fs.readFileSync("extension/manifest.json", "utf8")).version; if (process.env.RELEASE_TAG !== `v${v}-preview`) throw Error("Tag must match manifest version plus -preview");'
+          git rev-parse --verify "refs/tags/$RELEASE_TAG"
+      - run: node --test extension/tests/*.test.mjs
+      - run: node --check extension/background.js
+      - run: node --input-type=module --check < extension/panel.js
+      - run: node --input-type=module --check < extension/options.js
+      - name: Build configured extension
+        run: node scripts/build-extension.mjs "$RUNNER_TEMP/inbox-rescue-extension"
+      - name: Package with license, guide and checksum
+        run: python scripts/package-extension.py "$RUNNER_TEMP/inbox-rescue-extension" "$RUNNER_TEMP/inbox-rescue-extension-$RELEASE_TAG.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: configured-preview
+          path: |
+            ${{ runner.temp }}/inbox-rescue-extension-${{ env.RELEASE_TAG }}.zip
+            ${{ runner.temp }}/inbox-rescue-extension-${{ env.RELEASE_TAG }}.zip.sha256
+      - name: Publish prerelease
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            "$RUNNER_TEMP/inbox-rescue-extension-$RELEASE_TAG.zip" \
+            "$RUNNER_TEMP/inbox-rescue-extension-$RELEASE_TAG.zip.sha256" \
+            --verify-tag --prerelease \
+            --title "Inbox Rescue $RELEASE_TAG" \
+            --notes-file "docs/releases/$RELEASE_TAG.md"

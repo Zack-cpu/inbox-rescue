@@ -1,99 +1,78 @@
-# Inbox Rescue ✉
+# Inbox Rescue
 
-Find important Gmail messages misplaced in Spam and Promotions. Self-hosted, explainable rules, and manual review before restoring.
+**Give important mail a second look — right beside Gmail.**
 
-**Early local prototype:** one account, manual scans, no AI service, no automatic restores, and no mail sending.
+An open-source browser side panel that helps you review messages in Spam and Promotions, explains recent correspondence, and lets you choose what belongs in Primary.
 
-## Try the demo
+[Download Preview](https://github.com/Zack-cpu/inbox-rescue/releases) · [Install in one minute](docs/INSTALL.md) · [Report a problem](https://github.com/Zack-cpu/inbox-rescue/issues/new/choose)
 
-**Browser extension:** To try the side panel without Python, follow [extension/README.md](extension/README.md). Version 0.3 provides a preconfigured Connect Gmail entry point, an automatic first scan, and optional demo mode. Configured test packages use a fixed extension ID; the maintainer registers its callback once. Public access still requires the applicable Google verification and store review. The instructions below describe the separate Python prototype.
+> **Preview access:** Anyone can try the fictional-mail demo. Real Gmail connections currently require an invitation to the project's Google test-user list. Public Gmail access is not available yet. No Google Cloud setup is required for users of the configured release package.
 
-Install Python 3.11+ and run from the project directory:
+![Illustrated Inbox Rescue demo with fictional messages](docs/assets/preview.svg)
 
-```sh
-python -m venv .venv
-```
+*Illustrated preview using fictional mail. The panel is opened from your browser toolbar beside Gmail.*
 
-Activate the environment on Windows PowerShell:
+## Get started
 
-```powershell
-.venv\Scripts\Activate.ps1
-```
+1. Download `inbox-rescue-extension-v0.3.0-preview.zip` from [Releases](https://github.com/Zack-cpu/inbox-rescue/releases). Use the extension asset, not GitHub's automatic Source code ZIP.
+2. Extract it. In `edge://extensions` or `chrome://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the extracted folder containing `manifest.json`.
+3. Open Gmail, pin **Inbox Rescue** to the toolbar, and click its icon to open the side panel.
+4. Click **Try a demo instead**, or, if your account is invited, **Connect Gmail**. The first real scan starts after authorization.
 
-On macOS / Linux:
+No Python, terminal, server, credentials JSON, or client ID is needed. Manual loading is required for this GitHub preview; there is no store installation or automatic update yet. Downloads appear once a Preview release has been published.
 
-```sh
-source .venv/bin/activate
-```
+See the [Chrome / Edge installation guide](docs/INSTALL.md) for troubleshooting and updates.
 
-Then install and start the app:
+## What it does
 
-```sh
-python -m pip install -e '.[dev]'
-python -m uvicorn rescue.app:app --host 127.0.0.1 --port 8000
-```
+- **Separate Spam and Promotions queues.** Review each category without mixing messages together.
+- **Explainable correspondence checks.** Find messages from addresses you contacted or conversations you participated in.
+- **Manual control.** Inspect a message in Gmail, confirm a restore to Primary, and undo the label change while the results remain open.
+- **Local processing.** The extension talks directly to Google. No app server, third-party AI service, or analytics pipeline receives your mail.
+- **Optional demo.** Explore the review flow before granting mailbox access.
 
-Open http://127.0.0.1:8000. Demo mode is enabled by default and uses fictional messages. Try scanning, restoring, and undoing without connecting a mailbox.
+## What to expect
 
-If PowerShell blocks activation, use `.venv\Scripts\python.exe` instead of `python` in the commands above.
+Scans cover up to 100 Spam/Promotions messages from the last 7 days, using up to 300 sent messages from 90 days as correspondence history. Progress and limits are shown.
 
-## Connect your Gmail account
+This is a correspondence-based review tool. It can miss important messages from new senders, and prior contact does not prove a sender is safe. It does not analyze every message for importance or guarantee future Gmail classification. No automatic restores or sending are implemented.
 
-1. Create a Google Cloud project and enable the Gmail API.
-2. Configure the Google Auth consent screen. For personal Gmail, choose External; in Testing mode, add your address as a test user. Configure the scope `https://www.googleapis.com/auth/gmail.modify`.
-3. Create an OAuth client of type **Desktop app**. Download the JSON file and save it as `data/credentials.json`, creating the `data/` directory first. Never upload this file.
-4. In your activated local environment, run `python -m rescue.auth` and complete Google authorization in the browser. The token is saved in `data/token.json`.
-5. Enable real mailbox mode and start the app:
+## Privacy and account access
 
-```powershell
-# Windows PowerShell
-$env:INBOX_RESCUE_DEMO="0"
-python -m uvicorn rescue.app:app --host 127.0.0.1 --port 8000
-```
+Google asks for `gmail.modify` to read message metadata and apply user-confirmed label changes. That scope is broad and technically permits sending, although Inbox Rescue has no send operation.
 
-```sh
-# macOS / Linux
-INBOX_RESCUE_DEMO=0 python -m uvicorn rescue.app:app --host 127.0.0.1 --port 8000
-```
+Access tokens are kept in browser-session storage and expire; reconnect when prompted. Fetched message metadata and undo actions live in panel memory and disappear when results are cleared, rescanned, or the panel reloads. Disconnecting does not reverse earlier mail changes.
 
-The authorization flow follows the [official Gmail Python quickstart](https://developers.google.com/workspace/gmail/api/quickstart/python). Each self-hosting user configures their own OAuth project. A publicly hosted service requires a separate assessment of Google's app verification and user-data policies. Testing-mode authorizations may expire and require reconnecting.
+[Read the privacy summary](docs/PRIVACY.md) · [Security details](SECURITY.md)
 
-The `gmail.modify` scope is broad: it permits reading and modifying mail, and technically also permits sending. This project implements no sending operation. Modification access supports user-confirmed restores and undo.
+Inbox Rescue is an independent project and is not affiliated with Google or Microsoft.
 
-## How the first version works
+## Preview feedback
 
-- Scans up to 100 messages in Spam and Promotions from the last 7 days, excluding Trash.
-- Checks up to 300 sent messages from the last 90 days for recipient-address and conversation matches.
-- Shows the correspondence evidence for each candidate. Authentication failures reported in headers trigger a warning. Neither correspondence nor authentication headers prove a message is safe.
-- Separates the review queue into Spam and Promotions, with counts reflecting the active correspondence filter. Messages with both labels appear under Spam.
-- Lets you review all checked messages. Messages without correspondence evidence may still be important. Reaching a scan limit is disclosed as incomplete coverage.
-- After you confirm a restore, removes `SPAM` / `CATEGORY_PROMOTIONS`, adds `INBOX` / `CATEGORY_PERSONAL`, and records the label delta in local SQLite storage.
-- Undo reverses only that delta, preserves unrelated labels, and refuses obvious later conflicts. Its button remains available until a refresh or rescan. Dismissals apply only to the current scan.
+The most useful feedback is whether this helped you find a message you would otherwise have missed, and which parts of installation or review were confusing. Use [Issues](https://github.com/Zack-cpu/inbox-rescue/issues/new/choose); redact personal addresses, message content, tokens, and credentials before sharing screenshots.
 
-New senders usually have no correspondence history. This project cannot guarantee that it finds every missed message or controls future Gmail classification. Gmail links use the first account in your browser; switch to the authorized account if necessary.
+If you find it useful, a GitHub star helps others discover the project.
 
-## Privacy
+## Development
 
-Mail is processed locally without AI analysis or analytics services. Gmail API responses may contain snippets, but these are not displayed or stored. The local database stores only action message IDs and label changes. Authorization tokens are stored unencrypted in `data/`; protect the directory with your operating system's account permissions. It is excluded from Git and Docker image builds.
-
-Use this prototype only on a trusted personal computer. Do not expose its port to your LAN or the internet. See [SECURITY.md](SECURITY.md) for limitations, disconnect instructions, and failure handling.
-
-## Docker
+The browser extension is the primary interface. With Node.js 22+:
 
 ```sh
-docker compose up --build
+node --test extension/tests/*.test.mjs
+node scripts/build-extension.mjs
 ```
 
-This starts demo mode at http://127.0.0.1:8000. For real mailbox mode, authorize on the host first, then set `INBOX_RESCUE_DEMO=0` before starting Compose. The container's non-root user needs write access to the mounted `data/` directory. Docker deployment has not been verified on every platform.
+Load the resulting configured folder for release testing. Loading the source `extension/` folder directly is a maintainer workflow and may produce a different redirect URL. See [maintainer instructions](extension/MAINTAINERS.md).
 
-## Development and contributions
+The earlier Python/FastAPI prototype remains available for contributors in [the prototype guide](docs/PYTHON_PROTOTYPE.md). It is not required to use the browser extension.
 
-```sh
-python -m pytest -q
-```
+## Roadmap
 
-`rescue/gmail.py` handles the mailbox API, `rules.py` evaluates correspondence, `store.py` records actions, and `app.py` serves the local interface and API. Tests use simulated Gmail responses and never change real messages. Live authorization and mailbox changes still require validation with a test account.
+- [x] Gmail side panel, category queues, explicit restore and undo
+- [x] Preconfigured test package and one-click connection entry point
+- [ ] Fixed-ID package validation with invited testers
+- [ ] Google verification for public Gmail access
+- [ ] Persistent review and undo history
+- [ ] Store distribution and easier updates
 
-See the [contribution guide](CONTRIBUTING.md). MIT licensed.
-
-Next priorities: test-account validation → persistent review and undo history → configurable and incremental scans → Outlook support.
+[Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md) · [MIT License](LICENSE)

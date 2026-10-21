@@ -21,10 +21,12 @@ export async function buildRelease({outputDir, publicKey, clientId = DEFAULT_CLI
   const normalizedOutput = output.toLowerCase(), normalizedRoot = root.toLowerCase();
   if (normalizedOutput === normalizedRoot || normalizedOutput.startsWith(normalizedRoot + '/') || normalizedOutput.startsWith(normalizedRoot + '\\')) throw new Error('Release output must be outside the source repository.');
   await mkdir(output, {recursive: true});
-  const expected = new Set([...FILES, 'manifest.json', 'oauth-config.mjs', 'README.md', 'release-info.json']);
+  const expected = new Set([...FILES, 'manifest.json', 'oauth-config.mjs', 'README.md', 'release-info.json', 'LICENSE', 'INSTALL.md']);
   if ((await readdir(output)).some(file => !expected.has(file))) throw new Error('Output contains unexpected files. Choose a clean release folder.');
   // Copy an explicit file list: credentials, tokens, caches and tests never enter the bundle.
   for (const file of FILES) await copyFile(join(root, 'extension', file), join(output, file));
+  await copyFile(join(root, 'LICENSE'), join(output, 'LICENSE'));
+  await copyFile(join(root, 'docs/INSTALL.md'), join(output, 'INSTALL.md'));
   const manifest = JSON.parse(await readFile(join(root, 'extension/manifest.json'), 'utf8'));
   manifest.key = publicKey;
   await writeFile(join(output, 'manifest.json'), JSON.stringify(manifest, null, 2) + '\n');

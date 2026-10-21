@@ -26,7 +26,9 @@ https://gkkfdakddompncgecjajlajaphgogkhe.chromiumapp.org/oauth2
 
 Add that exact URL to the same Web application OAuth client's **Authorized redirect URIs**. Do not delete an older callback still used for development. Test by loading the built folder into Edge and Chrome and checking the Options page's actual callback. The public key fixes unpacked test identity; it is not a store signing key. A future store build must use that store's assigned public key/ID and register the corresponding callback separately.
 
-When distributing a ZIP, include only the builder's declared files plus manifest.json, oauth-config.mjs, README.md, and release-info.json. Do not zip the repository, browser profile, or private data directory. A GitHub release/upload is a separate explicit publishing step.
+When distributing a ZIP, include only the builder's declared files plus manifest.json, oauth-config.mjs, README.md, release-info.json, LICENSE, and INSTALL.md. Do not zip the repository, browser profile, or private data directory. A GitHub release/upload is a separate explicit publishing step.
+
+Use `python scripts/package-extension.py BUILD_FOLDER OUTPUT.zip` to package the allowlisted build with LICENSE, INSTALL.md, and a SHA-256 checksum. The GitHub Preview workflow runs the same build and packaging steps after a `v0.3.0-preview` tag is pushed. It publishes a prerelease with the notes in `docs/releases/v0.3.0-preview.md`. A tag does not itself complete Google verification or invite test accounts.
 
 ## What remains before public launch
 
