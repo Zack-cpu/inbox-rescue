@@ -32,7 +32,7 @@ async def protect(request: Request, call_next):
 @app.exception_handler(Exception)
 async def unavailable(request, exc):
     from fastapi.responses import JSONResponse
-    return JSONResponse({"detail": "操作未完成。请检查本地 Gmail 授权及网络后重试；若恢复失败，请先在 Gmail 核对状态。"}, status_code=503)
+    return JSONResponse({"detail": "The operation could not be completed. Check your local Gmail authorization and network connection, then retry. If a restore failed, verify the message status in Gmail first."}, status_code=503)
 
 
 @app.get("/")
@@ -59,8 +59,8 @@ def session():
 def scan():
     if DEMO:
         return {"limited": False, "checked": 2, "items": [
-            {"id": "demo", "sender": "Alex <alex@example.com>", "subject": "Re: 周五见面安排", "labels": ["SPAM"], "reasons": ["这个会话中有你发送的邮件"], "warnings": ["演示邮件，不会操作真实邮箱"], "candidate": True},
-            {"id": "demo2", "sender": "Deals <deals@example.com>", "subject": "本周优惠", "labels": ["CATEGORY_PROMOTIONS", "INBOX"], "reasons": [], "warnings": [], "candidate": False},
+            {"id": "demo", "sender": "Alex <alex@example.com>", "subject": "Re: Friday meeting plans", "labels": ["SPAM"], "reasons": ["This conversation includes a message you sent"], "warnings": ["Demo message; your real mailbox will not be changed"], "candidate": True},
+            {"id": "demo2", "sender": "Deals <deals@example.com>", "subject": "This week's offers", "labels": ["CATEGORY_PROMOTIONS", "INBOX"], "reasons": [], "warnings": [], "candidate": False},
         ]}
     service = gmail.client()
     sent_ids, sent_limited = gmail.list_ids(service, "in:sent newer_than:90d", 300)
@@ -82,7 +82,7 @@ def restore(message_id: str):
         current = set(gmail.get_message(service, message_id).get("labelIds", []))
         removed = sorted(current & ALLOWED)
         if not removed or "TRASH" in current:
-            raise HTTPException(409, "邮件已不在待恢复分类中，请重新扫描")
+            raise HTTPException(409, "This message is no longer in a restorable category. Scan again.")
         added = [label for label in ["INBOX", "CATEGORY_PERSONAL"] if label not in current]
         aid = store.prepare(message_id, added, removed)
         service.users().messages().modify(userId="me", id=message_id, body={"addLabelIds": added, "removeLabelIds": removed}).execute()
@@ -97,12 +97,12 @@ def undo(action_id: int):
     with LOCK:
         row = store.action(action_id)
         if not row or row[3] != "done":
-            raise HTTPException(409, "操作不存在或已撤销")
+            raise HTTPException(409, "This action does not exist or has already been undone.")
         mid, added, removed, _ = row
         service = gmail.client()
         current = set(gmail.get_message(service, mid).get("labelIds", []))
         if not set(json.loads(added)) <= current or set(json.loads(removed)) & current or "TRASH" in current:
-            raise HTTPException(409, "邮件分类已变化，请到 Gmail 核对，避免覆盖后续操作")
+            raise HTTPException(409, "The message labels have changed. Check Gmail to avoid overwriting later changes.")
         service.users().messages().modify(userId="me", id=mid, body={"addLabelIds": json.loads(removed), "removeLabelIds": json.loads(added)}).execute()
         store.mark(action_id, "undone")
         return {"ok": True}

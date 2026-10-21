@@ -8,7 +8,7 @@ function element(tag, text, cls) {
 async function api(path) {
   const r = await fetch(path, {method:'POST', headers:{'x-rescue-token':session.token}});
   const data = await r.json();
-  if (!r.ok) throw new Error(data.detail || '操作未完成，请重试');
+  if (!r.ok) throw new Error(data.detail || 'The operation could not be completed. Please try again.');
   return data;
 }
 function render() {
@@ -19,43 +19,43 @@ function render() {
     card.append(element('span', `${m.sender} · ${m.labels.includes('SPAM') ? 'Spam' : 'Promotions'}`, 'sender'));
     card.append(element('h3', m.subject));
     for (const r of m.reasons) card.append(element('p', '↳ ' + r, 'reason'));
-    if (!m.reasons.length) card.append(element('p', '未发现近期往来依据；这不代表邮件一定不重要。'));
-    for (const w of m.warnings) card.append(element('p', '注意：' + w, 'warning'));
+    if (!m.reasons.length) card.append(element('p', 'No recent correspondence was found. This message may still be important.'));
+    for (const w of m.warnings) card.append(element('p', 'Note: ' + w, 'warning'));
     const actions = element('div', '', 'actions');
     if (!session.demo) {
-      const link = element('a', '在 Gmail 中查看');
+      const link = element('a', 'View in Gmail');
       link.href = 'https://mail.google.com/mail/u/0/#all/' + encodeURIComponent(m.id);
       link.target = '_blank'; link.rel = 'noopener noreferrer'; actions.append(link);
     }
-    const restore = element('button', m.action !== undefined ? '撤销恢复' : '恢复到主要收件箱');
+    const restore = element('button', m.action !== undefined ? 'Undo restore' : 'Restore to Primary');
     restore.onclick = async () => {
-      if (m.action === undefined && !confirm(session.demo ? '模拟恢复这封演示邮件？' : '确认已核实发件人？这会移除垃圾/推广分类并放入主要收件箱。')) return;
+      if (m.action === undefined && !confirm(session.demo ? 'Simulate restoring this demo message?' : 'Have you verified the sender? This removes the Spam/Promotions labels and moves the message to Primary.')) return;
       restore.disabled = true;
       try {
         if (m.action !== undefined) { await api('/api/undo/' + m.action); delete m.action; }
         else { const result = await api('/api/restore/' + encodeURIComponent(m.id)); m.action = result.action_id; }
-        $('status').textContent = session.demo ? '演示操作完成，真实邮箱未改变。' : '操作完成。撤销入口保留到刷新或重新扫描前。';
+        $('status').textContent = session.demo ? 'Demo action completed. Your real mailbox has not changed.' : 'Action completed. You can undo it until you refresh or scan again.';
         render();
       } catch (e) { $('status').textContent = e.message; }
       finally { restore.disabled = false; }
     };
-    const ignore = element('button', '本次忽略', 'secondary');
+    const ignore = element('button', 'Dismiss for now', 'secondary');
     ignore.onclick = () => { items = items.filter(x => x !== m); render(); };
     actions.append(restore, ignore); card.append(actions); $('items').append(card);
   }
-  if (!shown.length) $('items').append(element('p', '没有符合当前筛选条件的邮件。可勾选“显示所有”人工复查。'));
+  if (!shown.length) $('items').append(element('p', 'No messages match this filter. Select “Show all checked messages” to review them manually.'));
 }
 $('all').onchange = render;
 $('scan').disabled = true;
 $('scan').onclick = async () => {
-  $('scan').disabled = true; $('status').textContent = '正在检查邮件与近期往来，请稍候…';
+  $('scan').disabled = true; $('status').textContent = 'Checking messages and recent correspondence. Please wait…';
   try {
     const result = await api('/api/scan'); items = result.items; render();
-    $('status').textContent = `已检查 ${result.checked} 封，${items.filter(m => m.candidate).length} 封有近期往来依据。` + (result.limited ? ' 已达到扫描上限，结果不完整。' : '') + ' 规则可能漏判，请结合所有邮件复查。';
+    $('status').textContent = `Checked ${result.checked} messages; ${items.filter(m => m.candidate).length} have recent correspondence.` + (result.limited ? ' The scan limit was reached; results are incomplete.' : '') + ' Rules can miss important messages. Review all checked messages as needed.';
   } catch (e) { $('status').textContent = e.message; }
   finally { $('scan').disabled = false; }
 };
 fetch('/api/session').then(r => {if (!r.ok) throw Error(); return r.json();}).then(s => {
-  session = s; $('mode').textContent = s.demo ? '演示模式' : 'Gmail · 本地模式'; $('scan').disabled = false;
-  if (!s.demo) $('status').textContent = '已启用 Gmail 模式，点击按钮检查。请确保 Gmail 页面登录的是已授权账号。';
-}).catch(() => { $('status').textContent = '无法连接本地服务，请刷新重试。'; });
+  session = s; $('mode').textContent = s.demo ? 'Demo mode' : 'Gmail · Local mode'; $('scan').disabled = false;
+  if (!s.demo) $('status').textContent = 'Gmail mode is enabled. Start a scan above. Make sure Gmail is signed in to the authorized account.';
+}).catch(() => { $('status').textContent = 'Unable to connect to the local service. Refresh to try again.'; });

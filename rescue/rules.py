@@ -17,19 +17,19 @@ def assess(message, sent_addresses, sent_threads):
     h = headers(message)
     reasons = []
     if addresses(h.get("from", "")) & sent_addresses:
-        reasons.append("你在最近检查的已发送邮件中联系过这个地址")
+        reasons.append("You contacted this address in the recently checked sent messages")
     if message.get("threadId") in sent_threads:
-        reasons.append("这个会话中有你发送的邮件")
+        reasons.append("This conversation includes a message you sent")
     # Authentication-Results is explanatory only: copied or forged headers are possible.
     auth = h.get("authentication-results", "").lower()
     warnings = []
     if any(flag in auth for flag in ("dmarc=fail", "dkim=fail", "spf=fail", "spf=softfail")):
-        warnings.append("邮件头包含身份验证失败信息；请在 Gmail 中核实发件人")
+        warnings.append("The headers report an authentication failure; verify the sender in Gmail")
     if not auth:
-        warnings.append("未获取到身份验证结果")
+        warnings.append("No authentication results were available")
     return {
-        "id": message["id"], "sender": h.get("from", "未知发件人"),
-        "subject": h.get("subject", "（无主题）"),
+        "id": message["id"], "sender": h.get("from", "Unknown sender"),
+        "subject": h.get("subject", "(No subject)"),
         "labels": message.get("labelIds", []), "reasons": reasons,
         "warnings": warnings, "candidate": bool(reasons),
     }
