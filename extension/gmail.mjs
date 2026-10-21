@@ -59,15 +59,22 @@ export class Gmail {
     const url = new URL(`https://gmail.googleapis.com/gmail/v1/users/me/${path}`);
     if (query) for (const [key, value] of query) url.searchParams.append(key, value);
     let response;
-    try { response = await this.request(url.href, {
+    // Calling native fetch as this.request(...) gives it the wrong receiver in browsers.
+    const request = this.request;
+    try { response = await request(url.href, {
       method: body ? 'POST' : 'GET',
       headers: {Authorization: `Bearer ${this.session.token}`, ...(body ? {'Content-Type': 'application/json'} : {})},
       ...(body ? {body: JSON.stringify(body)} : {}), signal: AbortSignal.timeout(20000),
-    }); } catch { throw new Error('Network request failed. For restore or undo, check Gmail before retrying: the update may already have succeeded.'); }
+    }); } catch (error) {
+      const reason = ['TimeoutError', 'AbortError'].includes(error?.name)
+        ? 'Gmail took too long to respond.'
+        : 'Unable to reach Gmail. Check the connection and extension site permissions.';
+      throw new Error(reason + (body ? ' Check Gmail before retrying: the label update may already have succeeded.' : ' Try the scan again; this read request did not change any messages.'));
+    }
     if (response.status === 401) {
       await this.onExpired(); throw new Error('Gmail authorization is no longer valid. Connect again.');
     }
-    if (!response.ok) throw new Error(`Gmail request failed (${response.status}). Check API access, permissions, or quota. For an update, check Gmail before retrying.`);
+    if (!response.ok) throw new Error(`Gmail request failed (${response.status}). Check API access, permissions, or quota.` + (body ? ' Check Gmail before retrying the update.' : ''));
     return response.json();
   }
   message(id) {

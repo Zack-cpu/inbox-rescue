@@ -2,6 +2,28 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {addresses, assess, restoreDelta, canUndo, Gmail} from '../gmail.mjs';
 
+test('browser fetch is invoked without binding it to the Gmail instance', async () => {
+  const client = new Gmail({expiresAt: Date.now() + 60000, token: 'fake'}, async () => {}, async function () {
+    // Native browser fetch rejects a non-global receiver with Illegal invocation.
+    if (this !== undefined && this !== globalThis) throw new TypeError('Illegal invocation');
+    return {ok: true, json: async () => ({messages: []})};
+  });
+  assert.deepEqual(await client.list('in:spam', 100), {ids: [], limited: false});
+});
+
+test('read failures and uncertain label updates have different recovery guidance', async () => {
+  const client = new Gmail({expiresAt: Date.now() + 60000, token: 'fake'}, async () => {}, async () => {
+    throw new DOMException('timeout', 'TimeoutError');
+  });
+  await assert.rejects(client.list('in:spam', 100), error => {
+    assert.match(error.message, /too long/);
+    assert.match(error.message, /did not change/);
+    assert.doesNotMatch(error.message, /may already have succeeded/);
+    return true;
+  });
+  await assert.rejects(client.api('messages/m/modify', {body: {addLabelIds: ['INBOX']}}), /may already have succeeded/);
+});
+
 test('relationship matching uses mailbox addresses rather than display names', () => {
   assert.deepEqual(addresses('"alex@example.com" <attacker@example.net>'), ['attacker@example.net']);
   assert.deepEqual(addresses('"Last, First" <Alex@example.com>, other@example.net'), ['alex@example.com', 'other@example.net']);
