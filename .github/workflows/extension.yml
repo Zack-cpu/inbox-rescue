@@ -11,3 +11,5 @@ jobs:
       - run: node --test extension/tests/*.test.mjs
       - run: node --check extension/background.js
       - run: node --input-type=module --check < extension/panel.js
+      - run: node --input-type=module --check < extension/options.js
+      - run: node scripts/build-extension.mjs "$RUNNER_TEMP/inbox-rescue-extension"

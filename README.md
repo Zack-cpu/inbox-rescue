@@ -6,7 +6,7 @@ Find important Gmail messages misplaced in Spam and Promotions. Self-hosted, exp
 
 ## Try the demo
 
-**Browser extension:** To try the side panel without Python, follow [extension/README.md](extension/README.md). Version 0.2 includes demo mode and a real Gmail connection flow requiring one-time developer OAuth configuration. Live browser validation is still required. The instructions below describe the separate Python prototype.
+**Browser extension:** To try the side panel without Python, follow [extension/README.md](extension/README.md). Version 0.3 provides a preconfigured Connect Gmail entry point, an automatic first scan, and optional demo mode. Configured test packages use a fixed extension ID; the maintainer registers its callback once. Public access still requires the applicable Google verification and store review. The instructions below describe the separate Python prototype.
 
 Install Python 3.11+ and run from the project directory:
 

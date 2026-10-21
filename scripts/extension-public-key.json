@@ -1,0 +1,4 @@
+{
+  "purpose": "Stable identity for unpacked test releases; replace with store public key for store identity.",
+  "publicKey": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAojb2Lwq/aedhdBwl4NKVHhUHVWDPrwPfF72nqKxi6VvPJxYhvPkzE+St9vhgNn4ZJ3v7fIcfA7sngygbRhzTXMhOQHDHUq4HnlWMVerfdLP6+33o/xj+VZClEfGusyH5UKt6Flt4cu0mqHUqf1C1LjWw4rYcUSeYdh3MDouKMcs3+7FKy+57Cy07mBoIqC266A7gmQo1VsUlheqE0JUMVSDznfr/q1nlCERje/wJBa8e2xJkoZ8B//fKNSNzlJxb5l3RxLW8gcMkg0w1cPHYQtpfqJsCOEHh2x/vcWMqzuP/CO6xWdCSaj/+ijWvPC5dKPVQhOpAklmpM+woMpDNOwIDAQAB"
+}

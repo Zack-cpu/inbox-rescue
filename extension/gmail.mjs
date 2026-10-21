@@ -95,14 +95,21 @@ export class Gmail {
     progress('Checking recent sent messages…');
     const sent = await this.list('in:sent newer_than:90d', 300);
     const sentAddresses = new Set(), threads = new Set();
+    let checkedSent = 0;
     await mapLimit(sent.ids, async id => {
       const message = await this.message(id);
       for (const h of ['To', 'Cc']) addresses(header(message, h)).forEach(a => sentAddresses.add(a));
       threads.add(message.threadId);
+      progress(`Checking recent correspondence: ${++checkedSent} of ${sent.ids.length}…`);
     });
     progress('Checking Spam and Promotions…');
     const candidates = await this.list('newer_than:7d {in:spam category:promotions} -in:trash', 100);
-    const items = await mapLimit(candidates.ids, async id => assess(await this.message(id), sentAddresses, threads));
+    let checkedMail = 0;
+    const items = await mapLimit(candidates.ids, async id => {
+      const item = assess(await this.message(id), sentAddresses, threads);
+      progress(`Checking Spam and Promotions: ${++checkedMail} of ${candidates.ids.length}…`);
+      return item;
+    });
     return {items, checked: items.length, limited: sent.limited || candidates.limited};
   }
   async restore(id) {

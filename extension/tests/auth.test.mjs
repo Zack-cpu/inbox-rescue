@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {SCOPE, parseResponse, validateClientId, getSession, disconnect, connect} from '../auth.mjs';
+import {SCOPE, parseResponse, validateClientId, getSession, disconnect, connect, settings} from '../auth.mjs';
+import {DEFAULT_CLIENT_ID} from '../oauth-config.mjs';
 
 const redirect = 'https://abcdefghijklmnop.chromiumapp.org/oauth2';
 function response(changes = {}) {
@@ -20,6 +21,14 @@ test('OAuth validates expiry and refusal without exposing access tokens', () => 
   assert.deepEqual(parseResponse(response(), redirect, 'random-state', 100), {token: 'fake-token', expiresAt: 3600100});
   assert.throws(() => validateClientId('private-secret'));
   assert.equal(validateClientId(' 123-client.apps.googleusercontent.com '), '123-client.apps.googleusercontent.com');
+});
+
+test('project configuration takes precedence over old device-specific client IDs', async () => {
+  globalThis.chrome = {storage: {local: {get: async () => ({oauthClientId: 'old.apps.googleusercontent.com'})}}, identity: {getRedirectURL: () => redirect}};
+  const config = await settings();
+  assert.equal(config.clientId, DEFAULT_CLIENT_ID);
+  assert.equal(config.managed, true);
+  assert.equal(config.redirect, redirect);
 });
 
 test('expired sessions are cleared without reading disk-based token files', async () => {
@@ -61,6 +70,8 @@ test('connect requests the right scope and persists only after validating the Gm
         const request = new URL(url);
         assert.equal(interactive, true);
         assert.equal(request.searchParams.get('scope'), SCOPE);
+        assert.equal(request.searchParams.get('client_id'), DEFAULT_CLIENT_ID);
+        assert.equal(request.searchParams.get('prompt'), 'select_account');
         assert.equal(request.searchParams.get('redirect_uri'), redirect);
         assert.ok(request.searchParams.get('state').length >= 32);
         return response({state: request.searchParams.get('state')});
