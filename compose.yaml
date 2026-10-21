@@ -1,0 +1,9 @@
+services:
+  inbox-rescue:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      INBOX_RESCUE_DEMO: "${INBOX_RESCUE_DEMO:-1}"
+    volumes:
+      - ./data:/app/data
