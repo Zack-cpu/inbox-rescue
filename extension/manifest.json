@@ -1,14 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Inbox Rescue — Demo",
-  "version": "0.1.0",
-  "description": "Preview a Gmail missed-mail review assistant in your browser side panel. Fictional mail only.",
+  "name": "Inbox Rescue",
+  "version": "0.2.0",
+  "description": "Review Gmail messages misplaced in Spam and Promotions, with explicit restore and undo.",
   "minimum_chrome_version": "116",
-  "permissions": ["sidePanel"],
+  "permissions": ["sidePanel", "identity", "storage"],
+  "host_permissions": ["https://gmail.googleapis.com/*", "https://oauth2.googleapis.com/*"],
   "action": {"default_title": "Open Inbox Rescue"},
   "background": {"service_worker": "background.js"},
   "side_panel": {"default_path": "panel.html"},
   "content_security_policy": {
-    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; base-uri 'none'"
+    "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src https://gmail.googleapis.com https://oauth2.googleapis.com; object-src 'none'; base-uri 'none'"
   }
 }

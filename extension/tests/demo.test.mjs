@@ -51,13 +51,13 @@ test('a new scan resets simulated changes and does not mutate fixtures', () => {
   assert.ok(fresh.every(m => !m.restored && !m.dismissed && !m.currentLabels));
 });
 
-test('demo manifest requests no mailbox, host, or identity permissions', async () => {
+test('manifest limits network access to Gmail and token revocation', async () => {
   const manifest = JSON.parse(await readFile(new URL('../manifest.json', import.meta.url), 'utf8'));
-  assert.deepEqual(manifest.permissions, ['sidePanel']);
-  assert.equal(manifest.host_permissions, undefined);
+  assert.deepEqual(manifest.permissions, ['sidePanel', 'identity', 'storage']);
+  assert.deepEqual(manifest.host_permissions, ['https://gmail.googleapis.com/*', 'https://oauth2.googleapis.com/*']);
   assert.equal(manifest.content_scripts, undefined);
-  assert.match(manifest.content_security_policy.extension_pages, /connect-src 'none'/);
-  for (const file of [manifest.background.service_worker, manifest.side_panel.default_path, 'panel.js', 'panel.css', 'demo.mjs']) {
+  assert.match(manifest.content_security_policy.extension_pages, /connect-src https:\/\/gmail.googleapis.com https:\/\/oauth2.googleapis.com;/);
+  for (const file of [manifest.background.service_worker, manifest.side_panel.default_path, 'panel.js', 'panel.css', 'demo.mjs', 'auth.mjs', 'gmail.mjs', 'oauth-config.mjs']) {
     assert.ok((await readFile(new URL('../' + file, import.meta.url))).length);
   }
 });

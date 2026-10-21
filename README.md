@@ -6,7 +6,7 @@ Find important Gmail messages misplaced in Spam and Promotions. Self-hosted, exp
 
 ## Try the demo
 
-**Browser extension preview:** To try the new side panel without Python, follow [extension/README.md](extension/README.md). It currently uses fictional messages only; real Gmail access below still belongs to the Python prototype.
+**Browser extension:** To try the side panel without Python, follow [extension/README.md](extension/README.md). Version 0.2 includes demo mode and a real Gmail connection flow requiring one-time developer OAuth configuration. Live browser validation is still required. The instructions below describe the separate Python prototype.
 
 Install Python 3.11+ and run from the project directory:
 

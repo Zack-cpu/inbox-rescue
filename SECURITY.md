@@ -1,6 +1,6 @@
 # Security and privacy
 
-The `extension/` preview is separate from the Python prototype described below. It requests only the side-panel permission, has no mailbox access or network connections, and holds fictional demo state in memory until the panel reloads.
+The `extension/` implementation is separate from the Python prototype described below. Version 0.2 requests sidePanel, identity, storage, and access to Gmail/token-revocation endpoints. It uses a Google client-side access-token flow in a browser identity window, validates callback/state/scope/expiry, and holds access tokens in browser-session storage. It has no refresh tokens or app server. Only the public OAuth client ID is saved to local storage. Fetched metadata and undo state live in panel memory and disappear on reload. Read extension/README.md for the precise authorization, disconnect, and uncertain-update limitations. Never add the Web OAuth client secret or Python authorization files to the extension. This local prototype has not completed live OAuth validation, a production security review, or Google/store verification.
 
 This prototype is for one user on a trusted local computer. Do not expose its port to a LAN or the internet. It has local Host validation and a per-process action token, but no user login or multi-user isolation.
 

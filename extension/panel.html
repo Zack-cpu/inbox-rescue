@@ -9,16 +9,17 @@
 </head>
 <body>
   <main>
-    <header><strong>✉ INBOX RESCUE</strong><span class="badge">Demo</span></header>
+    <header><strong>✉ INBOX RESCUE</strong><span id="mode" class="badge">Demo</span></header>
     <section class="intro" aria-labelledby="title">
       <p class="eyebrow">A second look, beside Gmail</p>
       <h1 id="title">Important mail.<br>Back in sight.</h1>
       <p>Review possible missed messages without leaving your inbox.</p>
     </section>
-    <aside class="notice"><strong>Fictional mail only</strong><p>This preview does not connect to Gmail or change real messages. Gmail sign-in is coming next.</p></aside>
+    <aside class="notice"><strong id="account-title">Connect your Gmail</strong><p id="account-description">Connect to check real mail, or try the demo below. Only confirmed restores change labels.</p><div class="actions"><button id="connect" type="button" class="primary">Connect Gmail</button><button id="disconnect" type="button" hidden>Disconnect</button></div></aside>
+    <details id="setup"><summary>Developer setup</summary><p>For this unpacked test build, configure a Google OAuth <strong>Web application</strong> client once. Do not use the previous Desktop app client or paste a secret.</p><label for="redirect">Authorized redirect URI (copy exactly)</label><input id="redirect" readonly spellcheck="false"><label for="client-id">Public OAuth client ID</label><input id="client-id" placeholder="…apps.googleusercontent.com" spellcheck="false" autocomplete="off"><button id="save-config" type="button">Save client ID</button><p>Only the public client ID is saved on disk. Access tokens stay in browser-session storage. A configured release will supply this ID for users.</p></details>
     <button id="scan" class="primary wide" type="button">Try a demo scan</button>
     <section aria-labelledby="queue-title">
-      <div class="queue-heading"><h2 id="queue-title">Review queue</h2><button id="reset" type="button" class="text-button">Reset demo</button></div>
+      <div class="queue-heading"><h2 id="queue-title">Review queue</h2><button id="reset" type="button" class="text-button">Clear results</button></div>
       <div class="categories" role="group" aria-label="Message category">
         <button id="spam" type="button" aria-pressed="true">Spam (0)</button>
         <button id="promotions" type="button" aria-pressed="false">Promotions (0)</button>
@@ -27,13 +28,13 @@
       <p id="status" role="status" aria-live="polite">Start a demo scan to explore the review flow.</p>
       <div id="items"></div>
     </section>
-    <footer>No mailbox access · No server needed<br>Demo changes last until this panel reloads.<br>Past correspondence does not verify a sender’s identity.</footer>
+    <footer>Processed in your browser · No app server or AI service<br>Check the connected account before viewing mail in Gmail.<br>Undo is available until results are cleared, rescanned, or this panel reloads.<br>Past correspondence does not verify a sender’s identity.</footer>
   </main>
   <dialog id="confirm-dialog" aria-labelledby="confirm-title" aria-describedby="confirm-description">
     <form method="dialog">
       <h2 id="confirm-title">Simulate a restore?</h2>
       <p id="confirm-description">This moves the fictional message to Primary. Your real Gmail account will not change.</p>
-      <div class="dialog-actions"><button value="cancel" autofocus>Cancel</button><button value="restore" class="primary">Restore demo message</button></div>
+      <div class="dialog-actions"><button value="cancel" autofocus>Cancel</button><button id="confirm-restore" value="restore" class="primary">Restore demo message</button></div>
     </form>
   </dialog>
 </body>
