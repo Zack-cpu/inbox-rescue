@@ -63,6 +63,7 @@ The `gmail.modify` scope is broad: it permits reading and modifying mail, and te
 - Scans up to 100 messages in Spam and Promotions from the last 7 days, excluding Trash.
 - Checks up to 300 sent messages from the last 90 days for recipient-address and conversation matches.
 - Shows the correspondence evidence for each candidate. Authentication failures reported in headers trigger a warning. Neither correspondence nor authentication headers prove a message is safe.
+- Separates the review queue into Spam and Promotions, with counts reflecting the active correspondence filter. Messages with both labels appear under Spam.
 - Lets you review all checked messages. Messages without correspondence evidence may still be important. Reaching a scan limit is disclosed as incomplete coverage.
 - After you confirm a restore, removes `SPAM` / `CATEGORY_PROMOTIONS`, adds `INBOX` / `CATEGORY_PERSONAL`, and records the label delta in local SQLite storage.
 - Undo reverses only that delta, preserves unrelated labels, and refuses obvious later conflicts. Its button remains available until a refresh or rescan. Dismissals apply only to the current scan.

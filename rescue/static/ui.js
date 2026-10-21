@@ -1,4 +1,5 @@
-let session, items = [];
+let session, items = [], category = 'spam';
+const categoryOf = m => m.labels.includes('SPAM') ? 'spam' : 'promotions';
 const $ = id => document.getElementById(id);
 function element(tag, text, cls) {
   const e = document.createElement(tag); e.textContent = text;
@@ -13,7 +14,13 @@ async function api(path) {
 }
 function render() {
   $('items').replaceChildren();
-  const shown = items.filter(m => $('all').checked || m.candidate);
+  const eligible = items.filter(m => $('all').checked || m.candidate);
+  for (const key of ['spam', 'promotions']) {
+    const count = eligible.filter(m => categoryOf(m) === key).length;
+    $(key).textContent = `${key === 'spam' ? 'Spam' : 'Promotions'} (${count})`;
+    $(key).setAttribute('aria-pressed', String(category === key));
+  }
+  const shown = eligible.filter(m => categoryOf(m) === category);
   for (const m of shown) {
     const card = element('article', '');
     card.append(element('span', `${m.sender} · ${m.labels.includes('SPAM') ? 'Spam' : 'Promotions'}`, 'sender'));
@@ -43,9 +50,16 @@ function render() {
     ignore.onclick = () => { items = items.filter(x => x !== m); render(); };
     actions.append(restore, ignore); card.append(actions); $('items').append(card);
   }
-  if (!shown.length) $('items').append(element('p', 'No messages match this filter. Select “Show all checked messages” to review them manually.'));
+  if (!shown.length) {
+    const label = category === 'spam' ? 'Spam' : 'Promotions';
+    const hint = $('all').checked ? 'Try the other category or scan again.' : 'Select “Show all checked messages” to review messages without correspondence evidence.';
+    $('items').append(element('p', `No ${label} messages match this filter. ${hint}`));
+  }
 }
 $('all').onchange = render;
+for (const key of ['spam', 'promotions']) {
+  $(key).onclick = () => { category = key; render(); };
+}
 $('scan').disabled = true;
 $('scan').onclick = async () => {
   $('scan').disabled = true; $('status').textContent = 'Checking messages and recent correspondence. Please wait…';
